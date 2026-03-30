@@ -9,7 +9,7 @@ export const registerCompany =  async (req,resp)=>{
                 success : false
             });
         }
-        let company = await Company.findOne({name:'companyName'})
+        let company = await Company.findOne({name:companyName})
         if(company){
             return resp.status(400).json({
                 message : "You can't register same company",
@@ -44,6 +44,11 @@ export const getCompany = async (req,resp)=>{
             })
         }
 
+        return resp.status(200).json({
+            companies,
+            success : true
+        })
+
     } catch (error) {
         console.log(error)
     }
@@ -76,7 +81,7 @@ export const updateCompany = async (req,resp) => {
         const file = req.file;
         //cloudinary ayega
 
-        const updateDate = {name,description,website,location};
+        const updateData = {name,description,website,location};
 
         const company = await Company.findByIdAndUpdate(req.params.id, updateData, {new:true});
 
@@ -87,7 +92,7 @@ export const updateCompany = async (req,resp) => {
             })
         }
         return resp.status(200).json({
-            message : "Company information uodated",
+            message : "Company information updated",
             success : true
         })
 
