@@ -22,7 +22,7 @@ export const postJob = async (req, resp) => {
             jobType,
             experienceLevel: experience,
             position,
-            compant : companyId,
+            company : companyId,
             created_by : userId
         })
         return resp.status(201).json({
