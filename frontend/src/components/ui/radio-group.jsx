@@ -1,0 +1,37 @@
+import * as React from "react"
+import * as RadioGroupPrimitive from "@radix-ui/react-radio-group"
+
+import { cn } from "@/lib/utils"
+
+const RadioGroup = React.forwardRef(({ className, ...props }, ref) => {
+  return (
+    <RadioGroupPrimitive.Root
+      ref={ref}
+      className={cn("flex gap-4", className)}
+      {...props}
+    />
+  )
+})
+
+RadioGroup.displayName = "RadioGroup"
+
+const RadioGroupItem = React.forwardRef(({ className, ...props }, ref) => {
+  return (
+    <RadioGroupPrimitive.Item
+      ref={ref}
+      className={cn(
+        "h-4 w-4 rounded-full border border-gray-400 flex items-center justify-center data-[state=checked]:border-purple-600",
+        className
+      )}
+      {...props}
+    >
+      <RadioGroupPrimitive.Indicator className="flex items-center justify-center">
+        <div className="h-2 w-2 rounded-full bg-purple-600" />
+      </RadioGroupPrimitive.Indicator>
+    </RadioGroupPrimitive.Item>
+  )
+})
+
+RadioGroupItem.displayName = "RadioGroupItem"
+
+export { RadioGroup, RadioGroupItem }
