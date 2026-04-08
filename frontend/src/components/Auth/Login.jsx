@@ -1,17 +1,29 @@
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { RadioGroup } from "../ui/radio-group";
+import axios from "axios";
 
 import Navbar from "../shared/Navbar";
 import { Button } from "../ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { USER_API_END_POINT } from "../../utils/constant";
+
 import { useState } from "react";
+import { toast } from "sonner";
+import { useDispatch, useSelector } from "react-redux";
+import { setLoading } from "../../Redux/authSlice";
+import store from "../../Redux/store";
+import { Loader2 } from "lucide-react";
 const Login = () => {
   const [input, SetInput] = useState({
     email: "",
     password: "",
     role: "",
   });
+
+  const navigate = useNavigate();
+  const { loading } = useSelector((store) => store.auth);
+  const dispatch = useDispatch();
 
   const changeEventHandler = (e) => {
     SetInput({ ...input, [e.target.name]: e.target.value });
@@ -21,23 +33,23 @@ const Login = () => {
     //becuse api call
     e.preventDefault();
     try {
-      const resp = await axios.post(
-        `${USER_API_END_POINT}/login`,
-        input,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
+      dispatch(setLoading(true));
+
+      const resp = await axios.post(`${USER_API_END_POINT}/login`, input, {
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        withCredentials: true,
+      });
       if (resp.data.success) {
         navigate("/");
         toast.success(resp.data.message);
       }
     } catch (error) {
       console.log(error);
-      toast.error(error.response.data.message)
+      toast.error(error?.response?.data?.message || "Login failed");
+    } finally {
+      dispatch(setLoading(false));
     }
   };
 
@@ -109,10 +121,16 @@ const Login = () => {
               </RadioGroup>
             </div>
           </div>
-
-          <Button className="w-full my-4 bg-black text-white" type="submit">
-            Login
-          </Button>
+          {loading ? (
+            <Button className='w-full my-4'>
+              {" "}
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait{" "}
+            </Button>
+          ) : (
+            <Button className="w-full my-4 bg-black text-white" type="submit">
+              Login
+            </Button>
+          )}
 
           <span className="text-sm">
             Don't have an account?{" "}
