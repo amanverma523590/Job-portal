@@ -18,7 +18,7 @@ app.use(express.json()); //allow express to read json data coming from frontend
 app.use(express.urlencoded({extended:true}));
 app.use(cookieParser());
 const corsOptions = {
-    origin : 'http://localhost:5713',
+    origin : 'http://localhost:5173',
     credentials : true,
 }
 app.use(cors(corsOptions))
