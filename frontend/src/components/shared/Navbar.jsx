@@ -56,7 +56,7 @@ const Navbar = () => {
                   <div className="flex flex-col text-gray-600 gap-2 my-2">
                     <div className="flex items-center gap-2">
                       <User size={18} />
-                      <Button variant="link">View Profile</Button>
+                      <Button variant="link"> <Link to="/profile">View Profile</Link> </Button>
                     </div>
 
                     <div className="flex items-center gap-2">
