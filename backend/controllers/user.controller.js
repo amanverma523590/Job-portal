@@ -1,6 +1,8 @@
 import { User } from '../models/user.model.js';
 import bcrypt from 'bcryptjs';
 import jwt from "jsonwebtoken";
+import getDataUri from '../utils/datauri.js';
+import cloudinary from '../utils/cloudinary.js';
 
 export const register = async (req, resp) => {
     try {
@@ -107,14 +109,20 @@ export const updateProfile = async (req, resp) => {
     try {
         const { fullname, email, phoneNumber, bio, skills } = req.body;
         const file = req.file;
+        
+        const fileUri = getDataUri(file);
+        const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
 
         //cloudinary comes here
+
+
+
         let skillsArray;
-        if(skills){
+        if (skills) {
             skillsArray = skills.split(","); //array string me aa raha hai is liye arrary me convert
         }
 
-        
+
         const userId = req.id;  //middleware authention se
         let user = await User.findById(userId);
         if (!user) {
@@ -123,16 +131,23 @@ export const updateProfile = async (req, resp) => {
                 success: false
             })
         }
+        if (!user.profile) {
+            user.profile = {};
+        }
 
         //updating data
 
-        if(fullname) user.fullname = fullname
-        if(email) user.email = email
-        if(phoneNumber) user.phoneNumber = phoneNumber
-        if(bio) user.profile.bio = bio
-        if(skills) user.profile.skills = skillsArray
+        if (fullname) user.fullname = fullname
+        if (email) user.email = email
+        if (phoneNumber) user.phoneNumber = phoneNumber
+        if (bio) user.profile.bio = bio
+        if (skills) user.profile.skills = skillsArray
 
         //resume comes later here 
+        if (cloudResponse) {
+            user.profile.resume = cloudResponse.secure_url // save the cloudinary url
+            user.profile.resumeOriginalName = file.originalname; //save the original  file name
+        }
 
         await user.save();
 
