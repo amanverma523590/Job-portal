@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import axios from 'axios'
+import axios from "axios";
 import {
   Dialog,
   DialogContent,
@@ -12,8 +12,8 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Loader2 } from "lucide-react";
 import { USER_API_END_POINT } from "../utils/constant";
-import { toast } from "sonner"; // or react-hot-toast (depends what you use)
-import { setUser } from "../redux/authSlice"; // adjust path
+import { toast } from "sonner";
+import { setUser } from "../redux/authSlice";
 
 const UpdateProfileDialouge = ({ open, setOpen }) => {
   const [loading, setLoading] = useState(false);
@@ -24,8 +24,8 @@ const UpdateProfileDialouge = ({ open, setOpen }) => {
     email: user?.email,
     phoneNumber: user?.phoneNumber,
     bio: user?.profile?.bio,
-    skills: user?.profile?.skills?.map((skill) => skill),
-    file: user?.profile?.resume,
+    skills: user?.profile?.skills?.join(","), // ✅ FIXED (array → string)
+    file: null, // ✅ FIXED (don’t prefill with URL)
   });
 
   const dispatch = useDispatch();
@@ -33,14 +33,14 @@ const UpdateProfileDialouge = ({ open, setOpen }) => {
   const changeEventHandler = (e) => {
     setInput({ ...input, [e.target.name]: e.target.value });
   };
-  const fileChangeHandler = (e)=>{
-    const file = e.target.files?.[0];
-    setInput({...input, file})
-  }
 
-  const submitHandler = async (e)=>{
+  const fileChangeHandler = (e) => {
+    const file = e.target.files?.[0];
+    setInput({ ...input, file });
+  };
+
+  const submitHandler = async (e) => {
     e.preventDefault();
-      console.log("🔥 SUBMIT CLICKED");  // 👈 ADD THIS FIRST LINE
 
     const formData = new FormData();
     formData.append("fullname", input.fullname);
@@ -48,31 +48,40 @@ const UpdateProfileDialouge = ({ open, setOpen }) => {
     formData.append("phoneNumber", input.phoneNumber);
     formData.append("bio", input.bio);
     formData.append("skills", input.skills);
-    if(input.file){
-      formData.append("file",input.file)
+
+    if (input.file) {
+      formData.append("file", input.file);
     }
+
+    // ✅ DEBUG (optional)
+    // for (let pair of formData.entries()) {
+    //   console.log(pair[0], pair[1]);
+    // }
 
     try {
       setLoading(true);
-      const res = await axios.post(`${USER_API_END_POINT}/profile/update`, formData, {
-        headers:{
-          'Content-Type':'multipart/form-data'
-        },
-        withCredentials:true
-      });
-      if(res.data.success){
+
+      const res = await axios.post(
+        `${USER_API_END_POINT}/profile/update`,
+        formData,
+        {
+          withCredentials: true, // ✅ keep this
+        }
+      );
+
+      if (res.data.success) {
         dispatch(setUser(res.data.user));
         toast.success(res.data.message);
       }
     } catch (error) {
-      console.log(error)
-      toast.error(error.response.data.message)
-    }finally{
-      setLoading(false)
+      console.log(error);
+      toast.error(error?.response?.data?.message || "Error");
+    } finally {
+      setLoading(false);
     }
+
     setOpen(false);
-    console.log(input)
-  }
+  };
 
   return (
     <div>
@@ -84,97 +93,80 @@ const UpdateProfileDialouge = ({ open, setOpen }) => {
           <DialogHeader>
             <DialogTitle>Update Profile</DialogTitle>
           </DialogHeader>
+
           <form onSubmit={submitHandler}>
             <div className="grid gap-4 py-4">
+
               <div className="grid grid-cols-4 items-center gap-4">
-                <label className="text-right" htmlFor="name">
-                  Name
-                </label>
+                <label className="text-right">Name</label>
                 <Input
-                  id="name"
                   name="fullname"
                   value={input.fullname}
-                  type="text"
                   onChange={changeEventHandler}
-                  className="col-span-3 w-full"
+                  className="col-span-3"
                 />
               </div>
+
               <div className="grid grid-cols-4 items-center gap-4">
-                <label className="text-right" htmlFor="email">
-                  Email
-                </label>
+                <label className="text-right">Email</label>
                 <Input
-                  id="email"
                   name="email"
                   value={input.email}
                   onChange={changeEventHandler}
-                  type="email"
-                  className="col-span-3 w-full"
+                  className="col-span-3"
                 />
               </div>
+
               <div className="grid grid-cols-4 items-center gap-4">
-                <label className="text-right" htmlFor="number">
-                  Number
-                </label>
+                <label className="text-right">Number</label>
                 <Input
-                  id="number"
                   name="phoneNumber"
                   value={input.phoneNumber}
                   onChange={changeEventHandler}
-                  className="col-span-3 w-full"
+                  className="col-span-3"
                 />
               </div>
+
               <div className="grid grid-cols-4 items-center gap-4">
-                <label className="text-right" htmlFor="bio">
-                  Bio
-                </label>
+                <label className="text-right">Bio</label>
                 <Input
-                  id="bio"
                   name="bio"
                   value={input.bio}
                   onChange={changeEventHandler}
-                  className="col-span-3 w-full"
+                  className="col-span-3"
                 />
               </div>
+
               <div className="grid grid-cols-4 items-center gap-4">
-                <label className="text-right" htmlFor="skills">
-                  Skills
-                </label>
+                <label className="text-right">Skills</label>
                 <Input
-                  id="skills"
                   name="skills"
                   value={input.skills}
                   onChange={changeEventHandler}
-                  className="col-span-3 w-full"
+                  className="col-span-3"
                 />
               </div>
+
               <div className="grid grid-cols-4 items-center gap-4">
-                <label className="text-right" htmlFor="file">
-                  File
-                </label>
+                <label className="text-right">File</label>
                 <Input
-                  id="file"
-                  name="file"
-                  className="col-span-3 w-full"
                   type="file"
                   onChange={fileChangeHandler}
                   accept="application/pdf"
+                  className="col-span-3"
                 />
               </div>
+
             </div>
 
             <DialogFooter>
               {loading ? (
                 <Button className="w-full my-4">
-                  {" "}
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please
-                  wait{" "}
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Please wait
                 </Button>
               ) : (
-                <Button
-                  className="w-full my-4 bg-black text-white"
-                  type="submit"
-                >
+                <Button className="w-full my-4 bg-black text-white" type="submit">
                   Update
                 </Button>
               )}

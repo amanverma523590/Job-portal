@@ -3,6 +3,9 @@ import bcrypt from 'bcryptjs';
 import jwt from "jsonwebtoken";
 import getDataUri from '../utils/datauri.js';
 import cloudinary from '../utils/cloudinary.js';
+import streamifier from "streamifier"; // ✅ add at top
+
+console.log("api") // here?
 
 export const register = async (req, resp) => {
     try {
@@ -13,6 +16,14 @@ export const register = async (req, resp) => {
                 success: false
             })
         };
+
+        //cloudinary ayega
+
+        const file = req.file;
+        const fileUri = getDataUri(file);
+        const cloudResponse = await cloudinary.uploader.upload(fileUri.content)
+
+
         const user = await User.findOne({ email });  // same email to nahi 
         if (user) {
             return resp.status(400).json({
@@ -28,6 +39,9 @@ export const register = async (req, resp) => {
             phoneNumber,
             password: hashedPassword,
             role,
+            profile:{
+                profilePhoto:cloudResponse.secure_url,
+            }
         });
         return resp.status(201).json({
             message: "Account created successfully",
@@ -105,50 +119,68 @@ export const logout = async (req, resp) => {
     }
 }
 
+
 export const updateProfile = async (req, resp) => {
     try {
+        console.log("api");
+
         const { fullname, email, phoneNumber, bio, skills } = req.body;
         const file = req.file;
-        
-        const fileUri = getDataUri(file);
-        const cloudResponse = await cloudinary.uploader.upload(fileUri.content,{
-            resource_type : "raw",
-            access_mode: "public",
-            format: "pdf"
-        });
 
-        //cloudinary comes here
+        console.log("FILE:", file);
+
+        let cloudResponse;
+
+        if (file) {
+            cloudResponse = await new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { resource_type: "raw" }, // keep this
+                    (error, result) => {
+                        if (error) {
+                            console.log("❌ Cloudinary Error:", error);
+                            reject(error);
+                        } else {
+                            resolve(result);
+                        }
+                    }
+                );
+
+                streamifier.createReadStream(file.buffer).pipe(stream);
+            });
+        }
 
         let skillsArray;
         if (skills) {
-            skillsArray = skills.split(","); //array string me aa raha hai is liye arrary me convert
+            skillsArray = skills.split(",");
         }
 
-
-        const userId = req.id;  //middleware authention se
+        const userId = req.id;
         let user = await User.findById(userId);
+
         if (!user) {
             return resp.status(400).json({
                 message: "User Not Found",
                 success: false
-            })
+            });
         }
+
         if (!user.profile) {
             user.profile = {};
         }
 
-        //updating data
+        if (fullname) user.fullname = fullname;
+        if (email) user.email = email;
+        if (phoneNumber) user.phoneNumber = phoneNumber;
+        if (bio) user.profile.bio = bio;
+        if (skills) user.profile.skills = skillsArray;
 
-        if (fullname) user.fullname = fullname
-        if (email) user.email = email
-        if (phoneNumber) user.phoneNumber = phoneNumber
-        if (bio) user.profile.bio = bio
-        if (skills) user.profile.skills = skillsArray
-
-        //resume comes later here 
+        // ✅ FIXED DELIVERY URL HERE
         if (cloudResponse) {
-            user.profile.resume = cloudResponse.secure_url // save the cloudinary url
-            user.profile.resumeOriginalName = file.originalname; //save the original  file name
+            user.profile.resume = cloudinary.url(cloudResponse.public_id, {
+                resource_type: "raw",
+                flags: "attachment:false" // ✅ open in browser instead of download
+            });
+            user.profile.resumeOriginalName = file.originalname;
         }
 
         await user.save();
@@ -160,15 +192,19 @@ export const updateProfile = async (req, resp) => {
             phoneNumber: user.phoneNumber,
             role: user.role,
             profile: user.profile
-        }
+        };
 
         return resp.status(200).json({
             message: "Profile Updated Successfully",
             user,
             success: true,
-        })
+        });
 
     } catch (error) {
-        console.log(error)
+        console.log(error); 
+        return resp.status(500).json({
+            message: "Error updating profile",
+            success: false
+        });
     }
-}
+};

@@ -2,11 +2,31 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Avatar, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { User, LogOut } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import axios from "axios";
+import { USER_API_END_POINT } from "../../utils/constant";
+import { setUser } from "../../redux/authSlice";
+import { toast } from "sonner";
 
 const Navbar = () => {
   const {user} = useSelector(store=>store.auth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const logoutHandler = async (e) =>{
+      try {
+        const res = await axios.get(`${USER_API_END_POINT}/logout`,{withCredentials:true});
+        if(res.data.success){
+            dispatch(setUser(null));
+            navigate('/');
+            toast.success(res.data.message)
+        }
+      } catch (error) {
+        console.log(error);
+        toast.error(error.response.data.message)
+      }
+  }
 
   return (
     <div className="bg-white">
@@ -33,21 +53,21 @@ const Navbar = () => {
             <Popover>
               <PopoverTrigger asChild>
                 <Avatar className="cursor-pointer">
-                  <AvatarImage src="/avatar.jpeg" alt="@shadcn" />
+                  <AvatarImage src={user?.profile?.profilePhoto} alt="@shadcn" />
                 </Avatar>
               </PopoverTrigger>
-              <PopoverContent className="w-80">
+              <PopoverContent className="w-80 bg-gray-50">
                 <div className="flex flex-col gap-4">
                   {/* Avatar + User Info */}
                   <div className="flex items-center gap-3">
                     <Avatar className="cursor-pointer">
-                      <AvatarImage src="/avatar.jpeg" alt="avatar" />
+                      <AvatarImage src={user?.profile?.profilePhoto} alt="avatar" />
                     </Avatar>
 
                     <div>
-                      <h4 className="font-medium">Patel MernStack</h4>
+                      <h4 className="font-medium">{user?.fullname}</h4>
                       <p className="text-sm text-muted-foreground">
-                        Lorem ipsum dolor sit amet.
+                       {user?.profile?.bio}
                       </p>
                     </div>
                   </div>
@@ -61,7 +81,7 @@ const Navbar = () => {
 
                     <div className="flex items-center gap-2">
                       <LogOut size={18} />
-                      <Button variant="link">Log Out</Button>
+                      <Button variant="link" onClick={logoutHandler}>Log Out</Button>
                     </div>
                   </div>
                 </div>
