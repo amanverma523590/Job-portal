@@ -68,20 +68,21 @@ const Profile = () => {
           </div>
         </div>
 
-        <div className="grid w-full max-w-sm items-center gap-1.5">
-          <Label className="text-md font-bold">Resume</Label>
-          {isResume ? (
-            <a
-              target="blank"
-              href="https://youtube.com/@patelmernstack"
-              className="text-blue-500 w-full hover:underline cursor-pointer"
-            >
-              {user?.profile?.resumeOriginalName}
-            </a>
-          ) : (
-            <span>NA</span>
-          )}
-        </div>
+          <div className="grid w-full max-w-sm items-center gap-1.5">
+            <Label className="text-md font-bold">Resume</Label>
+            {isResume ? (
+              <a
+                target="_blank"
+                href={user?.profile?.resume}
+                className="text-blue-500 w-full hover:underline cursor-pointer"
+                onClick={() => console.log(user?.profile?.resume)}
+              >
+                {user?.profile?.resumeOriginalName}
+              </a>
+            ) : (
+              <span>NA</span>
+            )}
+          </div>
       </div>
       <div className="max-w-4xl mx-auto bg-white rounded-2xl">
         <h1 className="font-bold text-lg my-5">Applied Jobs</h1>

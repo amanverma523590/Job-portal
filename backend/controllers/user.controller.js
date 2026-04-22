@@ -111,11 +111,13 @@ export const updateProfile = async (req, resp) => {
         const file = req.file;
         
         const fileUri = getDataUri(file);
-        const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+        const cloudResponse = await cloudinary.uploader.upload(fileUri.content,{
+            resource_type : "raw",
+            access_mode: "public",
+            format: "pdf"
+        });
 
         //cloudinary comes here
-
-
 
         let skillsArray;
         if (skills) {
