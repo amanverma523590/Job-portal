@@ -10,22 +10,22 @@ import { setUser } from "../../redux/authSlice";
 import { toast } from "sonner";
 
 const Navbar = () => {
-  const {user} = useSelector(store=>store.auth);
+  const { user } = useSelector(store => store.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const logoutHandler = async (e) =>{
-      try {
-        const res = await axios.get(`${USER_API_END_POINT}/logout`,{withCredentials:true});
-        if(res.data.success){
-            dispatch(setUser(null));
-            navigate('/');
-            toast.success(res.data.message)
-        }
-      } catch (error) {
-        console.log(error);
-        toast.error(error.response.data.message)
+  const logoutHandler = async (e) => {
+    try {
+      const res = await axios.get(`${USER_API_END_POINT}/logout`, { withCredentials: true });
+      if (res.data.success) {
+        dispatch(setUser(null));
+        navigate('/');
+        toast.success(res.data.message)
       }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response.data.message)
+    }
   }
 
   return (
@@ -39,9 +39,20 @@ const Navbar = () => {
 
         <div className="flex items-center gap-12">
           <ul className="flex font-medium gap-5 items-center">
-            <li> <Link to="/">Home</Link></li>
-            <li> <Link to="/jobs">Jobs</Link></li>
-            <li> <Link to="/browse">Browse</Link></li>
+            {
+              user && user.role === 'recruiter' ? (
+                <>
+                  <li> <Link to="/admin/companies">Companies</Link></li>
+                  <li> <Link to="/admin/jobs">Jobs</Link></li>
+                </>
+              ) : (
+                <>
+                  <li> <Link to="/">Home</Link></li>
+                  <li> <Link to="/jobs">Jobs</Link></li>
+                  <li> <Link to="/browse">Browse</Link></li>
+                </>
+              )
+            }
           </ul>
 
           {!user ? (
@@ -67,17 +78,24 @@ const Navbar = () => {
                     <div>
                       <h4 className="font-medium">{user?.fullname}</h4>
                       <p className="text-sm text-muted-foreground">
-                       {user?.profile?.bio}
+                        {user?.profile?.bio}
                       </p>
                     </div>
                   </div>
 
                   {/* Buttons */}
                   <div className="flex flex-col text-gray-600 gap-2 my-2">
-                    <div className="flex items-center gap-2">
-                      <User size={18} />
-                      <Button variant="link"> <Link to="/profile">View Profile</Link> </Button>
-                    </div>
+
+                    {
+                      user && user.role === 'student' && (
+                        <div className="flex items-center gap-2">
+                          <User size={18} />
+                          <Button variant="link"> <Link to="/profile">View Profile</Link> </Button>
+                        </div>
+                      )
+                    }
+
+
 
                     <div className="flex items-center gap-2">
                       <LogOut size={18} />
