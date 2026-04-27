@@ -9,6 +9,7 @@ import { COMPANY_API_END_POINT } from "../../utils/constant";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useSelector } from "react-redux";
 
 const CompanySetup = () => {
   const [input, setInput] = useState({
@@ -18,6 +19,8 @@ const CompanySetup = () => {
     location: "",
     file: null,
   });
+
+  const { singleCompany } = useSelector(store => store.company)
 
   const [loading, setLoading] = useState(false);
   const params = useParams();
@@ -68,13 +71,13 @@ const CompanySetup = () => {
 
   useEffect(() => {
     setInput({
-      name: "",
-      description: "",
-      website: "",
-      location: "",
-      file: null,
+      name: singleCompany.name || "",
+      description: singleCompany.description || "",
+      website: singleCompany.website || "",
+      location: singleCompany.location || "",
+      file: singleCompany.file || null
     });
-  }, []);
+  }, [singleCompany]);
 
   return (
     <div>
