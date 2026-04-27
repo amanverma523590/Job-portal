@@ -92,21 +92,25 @@ export const getJobById = async (req,resp)=>{
 
 //▶️▶️⛔⛔⛔👉👉👉admin  kitne job create kara abhi tak
 
-export const getAdminJobs = async (req,resp)=>{
+export const getAdminJobs = async (req, resp) => {
     try {
         const adminId = req.id;
-        const jobs = await Job.find({created_by:adminId});
 
-        if(!jobs){
-             return resp.status(400).json({
-                message : "Jobs Not found",
-                success : false
-            })
-        };
-        return resp.status(200).json({jobs,success:true})
+        const jobs = await Job.find({ created_by: adminId })
+            .populate("company")          // ✅ FIXED
+            .sort({ createdAt: -1 });     // ✅ move sort here
+
+        if (jobs.length === 0) {
+            return resp.status(404).json({
+                message: "Jobs Not found",
+                success: false
+            });
+        }
+
+        return resp.status(200).json({ jobs, success: true });
 
     } catch (error) {
-        console.log(error)
+        console.log(error);
     }
-}
+};
 
