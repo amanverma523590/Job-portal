@@ -4,7 +4,7 @@ export const registerCompany =  async (req,resp)=>{
     try {
         const {companyName} = req.body;
         if(!companyName){
-            resp.status(400).json({
+            return resp.status(400).json({
                 message : "Company name is required",
                 success : false
             });
@@ -78,6 +78,7 @@ export const getCompanyById = async (req,resp)=>{
 export const updateCompany = async (req,resp) => {
     try {
         const {name,description,website,location} = req.body;
+        console.log(name,description,website,location)
         const file = req.file;
         //cloudinary ayega
 

@@ -7,14 +7,22 @@ import { useNavigate } from 'react-router-dom'
 import { COMPANY_API_END_POINT } from '../../utils/constant'
 import { useDispatch } from 'react-redux'
 import { setSingleCompany } from '../../Redux/companySlice'
+import axios from 'axios'
+import { toast } from 'sonner'
 
 const CompanyCreate = () => {
     const navigate = useNavigate();
-    const [companyName,setCompanyName] = useState();
+    const [companyName,setCompanyName] = useState('');
     const dispatch = useDispatch();
 
     const registerNewCompany = async ()=>{
         try {
+             console.log("companyName before API call:", companyName); // 👈 ADD HERE
+
+        if (!companyName.trim()) {
+            toast.error("Company name is required");
+            return;
+        }
             const res = await axios.post(`${COMPANY_API_END_POINT}/register`,{companyName},{
                 headers:{
                     'Content-Type':'application/json'
@@ -25,7 +33,7 @@ const CompanyCreate = () => {
                 dispatch(setSingleCompany(res.data.company));
                 toast.success(res.data.message)
                 const  companyId = res?.data?.company?._id;
-                navigate(`admin/companies/${companyId}`)
+                navigate(`/admin/companies/${companyId}`)
             }
         } catch (error) {
             console.log(error)
@@ -43,7 +51,7 @@ const CompanyCreate = () => {
 
         <Label>Company Name</Label>
         <Input
-            input="text"
+            type="text"
             className='my-2'
             placeholder="JobHunt, Microsoft etc.."
             onChange={(e)=>setCompanyName(e.target.value)}
