@@ -12,14 +12,22 @@ import React, { useEffect, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Edit2, MoreHorizontal } from "lucide-react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const CompaniesTable = () => {
-  const { companies } = useSelector((store) => store.company);
+  const { companies, searchCompanyByText } = useSelector((store) => store.company);
   const[filterCompany,setFilterCompany] = useState(companies);
+  const navigate = useNavigate();
 
   useEffect(()=>{
-    
-  },[])
+    const fliteredCompany = companies.length >=0 && companies.filter((company)=>{
+      if(!searchCompanyByText){
+        return true;
+      }
+      return company?.name?.toLowerCase().includes(searchCompanyByText.toLowerCase());
+    });
+    setFilterCompany(fliteredCompany)
+  },[companies,searchCompanyByText])
 
   return (
     <div>
@@ -43,7 +51,7 @@ const CompaniesTable = () => {
               </TableCell>
             </TableRow>
           ) : (
-            companies.map((company) => (
+            filterCompany.map((company) => (
               <TableRow key={company._id}>
                 <TableCell>
                   <Avatar>
@@ -60,9 +68,9 @@ const CompaniesTable = () => {
                       <MoreHorizontal className="cursor-pointer" />
                     </PopoverTrigger>
 
-                    <PopoverContent className="w-32">
-                      <div className="flex items-center  gap-2 w-fit cursor-pointer hover:bg-gray-100 p-2 rounded">
-                        <Edit2 className="w-4" />   //its coming in left put in middle
+                    <PopoverContent className="w-32 bg-slate-200">
+                      <div onClick={()=>navigate(`/admin/companies/${company._id}`)} className="flex items-center  gap-2 w-fit cursor-pointer hover:bg-gray-100 p-2 rounded">
+                        <Edit2 className="w-4" />  
                         <span>Edit</span>
                       </div>
                     </PopoverContent>
