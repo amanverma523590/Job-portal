@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -12,18 +12,41 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { MoreHorizontal } from "lucide-react";
 import { useSelector } from "react-redux";
+import { toast } from "sonner";
+import axios from "axios";
+import { APPLICATION_API_END_POINT } from "../../utils/constant";
 
 const shortListingStatus = ["Accepted", "Rejected"];
 
 const ApplicantsTable = () => {
   const { applicants } = useSelector((store) => store.application);
-
-  // ✅ correct array from your API
   const applicantsData = applicants?.applications || [];
 
-  const handleStatusChange = (id, status) => {
-    console.log("Update:", id, status);
-    // TODO: call API to update status
+  // 🔥 NEW STATES
+  const [loadingId, setLoadingId] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState({});
+
+  const statusHandler = async (id, status) => {
+    console.log("CLICKED 👉", id, status);
+
+    setLoadingId(id);
+    setSelectedStatus((prev) => ({ ...prev, [id]: status }));
+
+    try {
+      const res = await axios.post(
+        `${APPLICATION_API_END_POINT}/status/${id}/update`,
+        { status },
+        { withCredentials: true }
+      );
+
+      if (res.data.success) {
+        toast.success(res.data.message);
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoadingId(null);
+    }
   };
 
   return (
@@ -31,7 +54,6 @@ const ApplicantsTable = () => {
       <Table>
         <TableCaption>A list of your recent applied users</TableCaption>
 
-        {/* HEADER */}
         <TableHeader>
           <TableRow>
             <TableHead>Full Name</TableHead>
@@ -43,17 +65,14 @@ const ApplicantsTable = () => {
           </TableRow>
         </TableHeader>
 
-        {/* BODY */}
         <TableBody>
           {applicantsData.length > 0 ? (
             applicantsData.map((item) => (
               <TableRow key={item._id}>
-                {/* 👇 actual user data is inside item.applicant */}
                 <TableCell>{item?.applicant?.fullname || "N/A"}</TableCell>
                 <TableCell>{item?.applicant?.email || "N/A"}</TableCell>
                 <TableCell>{item?.applicant?.phoneNumber || "N/A"}</TableCell>
 
-                {/* Resume */}
                 <TableCell>
                   {item?.applicant?.profile?.resumeOriginalName ? (
                     <a
@@ -69,33 +88,58 @@ const ApplicantsTable = () => {
                   )}
                 </TableCell>
 
-                {/* Date */}
                 <TableCell>
                   {item?.createdAt
                     ? new Date(item.createdAt).toLocaleDateString()
                     : "N/A"}
                 </TableCell>
 
-                {/* ACTION */}
                 <TableCell>
                   <div className="flex justify-end">
                     <Popover>
                       <PopoverTrigger asChild>
-                        <MoreHorizontal className="cursor-pointer w-4 h-4" />
+                        <button>
+                          <MoreHorizontal className="cursor-pointer w-4 h-4" />
+                        </button>
                       </PopoverTrigger>
 
                       <PopoverContent className="w-32 p-2">
-                        {shortListingStatus.map((status, index) => (
-                          <div
-                            key={index}
-                            onClick={() =>
-                              handleStatusChange(item._id, status)
-                            }
-                            className="p-1 rounded cursor-pointer hover:bg-gray-100"
-                          >
-                            {status}
-                          </div>
-                        ))}
+                        {shortListingStatus.map((status, index) => {
+                          const isSelected =
+                            selectedStatus[item._id] === status;
+                          const isLoading = loadingId === item._id;
+
+                          return (
+                            <button
+                              key={index}
+                              disabled={isLoading}
+                              onClick={() =>
+                                statusHandler(item._id, status)
+                              }
+                              className={`w-full text-left p-1 rounded transition
+                                ${
+                                  isSelected && status === "Accepted"
+                                    ? "bg-green-200 font-semibold"
+                                    : ""
+                                }
+                                ${
+                                  isSelected && status === "Rejected"
+                                    ? "bg-red-200 font-semibold"
+                                    : ""
+                                }
+                                ${
+                                  isLoading
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : "hover:bg-gray-100"
+                                }
+                              `}
+                            >
+                              {isLoading && isSelected
+                                ? "Updating..."
+                                : status}
+                            </button>
+                          );
+                        })}
                       </PopoverContent>
                     </Popover>
                   </div>
