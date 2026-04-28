@@ -14,28 +14,43 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 const AdminJobsTable = () => {
-  const { searchCompanyByText } = useSelector((store) => store.company);
-  const { allAdminJobs } = useSelector((store) => store.job);
+  // const { searchCompanyByText } = useSelector((store) => store.company);
+  const { allAdminJobs, searchJobByText } = useSelector((store) => store.job);
 
   const [filterJobs, setFilterJobs] = useState([]);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!allAdminJobs) {
-      setFilterJobs([]);
-      return;
-    }
+  // useEffect(() => {
+  //   if (!allAdminJobs) {
+  //     setFilterJobs([]);
+  //     return;
+  //   }
 
-    const filtered = allAdminJobs.filter((job) => {
-      if (!searchCompanyByText) return true;
+  //   const filtered = allAdminJobs.filter((job) => {
+  //     if (!searchCompanyByText) return true;
 
-      return job?.company?.name
-        ?.toLowerCase()
-        .includes(searchCompanyByText.toLowerCase());
-    });
+  //     return job?.company?.name
+  //       ?.toLowerCase()
+  //       .includes(searchCompanyByText.toLowerCase());
+  //   });
 
-    setFilterJobs(filtered);
-  }, [allAdminJobs, searchCompanyByText]);
+  //   setFilterJobs(filtered);
+  // }, [allAdminJobs, searchCompanyByText]);
+
+useEffect(() => {
+  const filteredJobs = allAdminJobs.filter((job) => {
+    if (!searchJobByText) return true;
+
+    const searchText = searchJobByText.toLowerCase();
+
+    return (
+      job?.title?.toLowerCase().includes(searchText) ||
+      job?.company?.name?.toLowerCase().includes(searchText)
+    );
+  });
+
+  setFilterJobs(filteredJobs);
+}, [allAdminJobs, searchJobByText]);
 
   return (
     <div>
