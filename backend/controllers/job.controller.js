@@ -114,3 +114,27 @@ export const getAdminJobs = async (req, resp) => {
     }
 };
 
+///delet controller
+
+export const deleteJob = async (req, resp) => {
+    try {
+        const jobId = req.params.id;
+
+        const job = await Job.findByIdAndDelete(jobId);
+
+        if (!job) {
+            return resp.status(404).json({
+                message: "Job not found",
+                success: false
+            });
+        }
+
+        return resp.status(200).json({
+            message: "Job deleted successfully",
+            success: true
+        });
+
+    } catch (error) {
+        console.log(error);
+    }
+};
